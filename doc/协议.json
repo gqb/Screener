@@ -1,0 +1,126 @@
+1、	初始化页面图
+    上行：
+    {
+        "action":"startapp",
+        "deviceid":"23423434234"
+    }
+    下行：
+    {
+        "code":"0",
+        "message":"",
+        "picture": "http://www.test.com/1.jpg" 
+    }
+	
+终端App首次启动时调用，以便APP应用在后台下载视频列表。
+Deviceid：初步定为得到设备的IMEI号码，厂家在出厂时，将IMEI号贴在屏上。
+
+2、	得到广告列表
+	上行：
+	{
+		"action": "getadlist",
+        "deviceid":"23423434234"
+	}
+	下行：
+	{
+		"code":"0",
+		"message": "",
+		"adlist": 
+        [
+            {
+                "adfilepath": "http://www.test.com/1.mp4",
+                "md5": "ADFIU-R5229-03FRQ-RFSDF",
+				"timelength":"12",
+				"startdate":"19443485334",
+				"enddate":"194434854522",
+				"chargetype":"0"
+            },
+			{
+                "adfilepath": "http://www.test.com/1.mp4",
+                "md5": "ADFIU-R5229-03FRQ-RFSDF",
+				"timelength":"12",
+				"startdate":"19443485334",
+				"enddate":"194434854522",
+				"chargetype":"1"
+            }	
+           
+        ]
+    }
+    说明：
+	文件下载重试3次，超3次视为下载失败。
+	md5:文件的MD5值，如果列表下发的视频或图片文件的md5值一样，则无需重新下载；
+	timelength：如果是图片，则以此时间显示；如果是视频，且视频的时长与此时间不一至，则以此时间为准，如果小于此时间，则多次播放，如果长如，则截止;
+	startdate、enddate：long型的时间戳；
+	chargetype：收费类型，是收费（1）还是公益（0），以便广告播放完后，没有收费广告时，在空闲时段中播放标记为0的公益类型广告。
+	
+3、心跳数据上传
+
+	上行：
+	{
+		"action": "uploadinfo",
+        "deviceid":"23423434234",
+		"osver":"5.1",
+		"appver":"1.0",
+		"starttime":"19443485334",
+		"totalspace":"425.32",
+		"freespace":"321.32",
+		"longitude":"116.32324",
+		"latitude":"39.32334",
+		"memoryspace":"3.23",
+		"curmd5":"ADFIU-R5229-03FRQ-RFSDF",
+		"filelist":"ADFIU-R5229-03FRQ-RFSDF;ADFIU-R5229-03FRQ-RFSDF;ADFIU-R5229-03FRQ-RFSDF;ADFIU-R5229-03FRQ-RFSDF"		
+	}
+	下行：
+	{
+		"code":"0",
+		"message": "",
+		"action": "getadlist"
+    }
+	
+	说明：
+	osver：系统版本
+	appver：应用版本
+	starttime：广告机开机时间    
+	totalspace：当前存储总容量（单位MB）    
+	freespace：当前存储剩余容量（单位MB）
+	memoryspace：当前内存剩余量（单位MB） 
+	curmd5：当前正在播放的广告
+	longitude\latitude:以判断终端是否被移走
+	filelist：广告列表（广告清单列表,文件名用“；”分号分开）
+	action:下行值如果为""，则没有事务，如果为getadlist则需要终端获取播放列表
+	
+4、终端异常上报
+
+	上行：
+	{
+		"action": "uploaderror",
+        "deviceid":"23423434234",
+		"errortype":"1",
+		"md5":"ADFIU-R5229-03FRQ-RFSDF"		
+	}
+	下行：
+	{
+		"code":"0",
+		"message": ""
+    }
+	
+	说明：
+	errortype：异常类型，1为播放失败；
+	md5：异常的相关文件MD5值
+		
+
+	
+5、短信检测
+	主要用于检测当广告机网络也不通时，设备是否正常通电，通过发送短信，广告机收到短信后自动回复短信，用于对于网络不通的广告机做初步的故障判断，且此方法可以将服务器域名地址变化合并。
+	
+	1)、服务器配置修改及检测是否在线
+	下行短信内容：server:http://www.test.com/uploadfile.aspx
+	回复短信内容：online
+	
+	2)、终端重启
+	下行短信内容：devicereboot
+	回复短信内容：ok
+	
+	3)、应用重启
+	下行短信内容：appreboot
+	回复短信内容：ok
+	
