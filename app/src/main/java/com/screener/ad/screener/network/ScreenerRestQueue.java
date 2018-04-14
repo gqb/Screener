@@ -3,20 +3,20 @@ package com.screener.ad.screener.network;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.solver.Cache;
-import android.util.Log;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import com.screener.ad.screener.network.model.AdList;
+import com.screener.ad.screener.network.model.Error;
+import com.screener.ad.screener.network.model.HeartBit;
+import com.screener.ad.screener.network.model.StartApp;
+
 import java.util.Collection;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.fastjson.FastJsonConverterFactory;
 
 public class ScreenerRestQueue {
 
@@ -28,24 +28,24 @@ public class ScreenerRestQueue {
         setUpApiService();
     }
 
-    public void postJson(Class response, String jsonString){
-        try {
-            jsonString = URLEncoder.encode(jsonString, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        RequestBody requestBody = RequestBody.create(MediaType.parse("Content-Type: application/json"), jsonString);
-        apiService.postJson(requestBody).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.d(TAG, response.toString());
-            }
+    public <T> void startApp(String jsonString, Callback<StartApp.Down> callback){
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonString);
+        apiService.startApp(requestBody).enqueue(callback);
+    }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d(TAG, t.toString());
-            }
-        });
+    public void getAdList(String jsonString, Callback<AdList.Down> callback){
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonString);
+        apiService.getAddList(requestBody).enqueue(callback);
+    }
+
+    public void uploadInfo(String jsonString, Callback<HeartBit.Down> callback) {
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonString);
+        apiService.uploadInfo(requestBody).enqueue(callback);
+    }
+
+    public void reportErro(String jsonString, Callback<Error.Down> callback) {
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonString);
+        apiService.reportErro(requestBody).enqueue(callback);
     }
 
     private void setUpApiService() {
@@ -73,7 +73,7 @@ public class ScreenerRestQueue {
         return new Retrofit.Builder()
             .baseUrl(endpoint)
             .client(client)
-//            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(FastJsonConverterFactory.create())
 //            .addCallAdapterFactory(GrindrCallAdapterFactory.create())
             .build();
     }
